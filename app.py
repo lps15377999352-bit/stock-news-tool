@@ -730,10 +730,17 @@ def api_generate_drafts():
     return jsonify({"ok": True, "message": "开始生成草稿"})
 
 
-if __name__ == "__main__":
+# ---------- 模块级初始化数据表（gunicorn 部署时 __main__ 不会执行，必须在此建表）----------
+try:
     ensure_analysis_table()
     ensure_debate_table()
     ensure_drafts_table()
+    stock_news.init_db().close()
+except Exception as e:
+    print(f"初始化数据表失败: {e}")
+
+
+if __name__ == "__main__":
     # 本地运行时自动打开浏览器；云部署（Render）不打开
     if os.environ.get("RENDER") != "true":
         threading.Timer(1.2, lambda: webbrowser.open(f"http://localhost:{PORT}")).start()
